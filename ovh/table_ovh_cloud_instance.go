@@ -107,10 +107,16 @@ func listInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var instances []Instance
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/instance", projectId), &instances)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_instance.listInstance", err)
+		plugin.Logger(ctx).Error("ovh_cloud_instance.listInstance", "error", err)
 		return nil, err
 	}
 	for _, instance := range instances {
@@ -127,10 +133,19 @@ func getInstance(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var instance Instance
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/instance/%s", projectId, id), &instance)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_instance.getInstance", err)
+		plugin.Logger(ctx).Error("ovh_cloud_instance.getInstance", "error", err)
 		return nil, err
 	}
 	instance.ImageID = instance.Image.ID

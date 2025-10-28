@@ -97,10 +97,18 @@ func listS3StorageContainer(ctx context.Context, d *plugin.QueryData, _ *plugin.
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	region := d.EqualsQuals["region"].GetStringValue()
 
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("region", region); err != nil {
+		return nil, err
+	}
+
 	var containers []S3StorageContainer
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/region/%s/storage", projectId, region), &containers)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_storage_s3.listS3StorageContainer", err)
+		plugin.Logger(ctx).Error("ovh_cloud_storage_s3.listS3StorageContainer", "error", err)
 		return nil, err
 	}
 	for _, container := range containers {
@@ -118,10 +126,22 @@ func getS3StorageContainer(ctx context.Context, d *plugin.QueryData, _ *plugin.H
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	region := d.EqualsQuals["region"].GetStringValue()
 	name := d.EqualsQuals["name"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("region", region); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("name", name); err != nil {
+		return nil, err
+	}
+
 	var container S3StorageContainer
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/region/%s/storage/%s", projectId, region, name), &container)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_storage_s3.getS3StorageContainer", err)
+		plugin.Logger(ctx).Error("ovh_cloud_storage_s3.getS3StorageContainer", "error", err)
 		return nil, err
 	}
 	return container, nil

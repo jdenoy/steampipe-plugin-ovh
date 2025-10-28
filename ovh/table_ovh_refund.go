@@ -120,7 +120,7 @@ func getRefundInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 	err = client.Get(fmt.Sprintf("/me/refund/%s", refund.ID), &refund)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_bill.getRefundInfo", err)
+		plugin.Logger(ctx).Error("ovh_bill.getRefundInfo", "error", err)
 		return nil, err
 	}
 
@@ -138,7 +138,7 @@ func listRefund(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 	err = client.Get("/me/refund", &refundsId)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_refund.listRefund", err)
+		plugin.Logger(ctx).Error("ovh_refund.listRefund", "error", err)
 		return nil, err
 	}
 

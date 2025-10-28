@@ -124,7 +124,7 @@ func getBillDetailInfo(ctx context.Context, d *plugin.QueryData, h *plugin.Hydra
 	err = client.Get(fmt.Sprintf("/me/bill/%s/details/%s", billDetail.BillID, billDetail.ID), &billDetail)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_bill_detail.getBillDetailInfo", err)
+		plugin.Logger(ctx).Error("ovh_bill_detail.getBillDetailInfo", "error", err)
 		return nil, err
 	}
 
@@ -140,12 +140,17 @@ func listBillingDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 
 	billId := d.EqualsQuals["bill_id"].GetStringValue()
 
+	// Validate required qualifier
+	if err := ValidateQualValue("bill_id", billId); err != nil {
+		return nil, err
+	}
+
 	// First, we get IDs of billing
 	var billDetailsId []string
 	err = client.Get(fmt.Sprintf("/me/bill/%s/details", billId), &billDetailsId)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_bill_detail.listBillingDetails", err)
+		plugin.Logger(ctx).Error("ovh_bill_detail.listBillingDetails", "error", err)
 		return nil, err
 	}
 
@@ -162,6 +167,14 @@ func listBillingDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 func getBillingDetail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	billId := d.EqualsQuals["bill_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("bill_id", billId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
 
 	h.Item = BillDetail{
 		ID:     id,

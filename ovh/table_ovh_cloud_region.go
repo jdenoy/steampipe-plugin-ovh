@@ -102,7 +102,7 @@ func getRegionInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateDa
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/region/%s", projectId, region.Name), &region)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_region.getRegionInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_region.getRegionInfo", "error", err)
 		return nil, err
 	}
 	return region, nil
@@ -115,10 +115,16 @@ func listRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var regionNames []string
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/region", projectId), &regionNames)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_region.listRegion", err)
+		plugin.Logger(ctx).Error("ovh_cloud_region.listRegion", "error", err)
 		return nil, err
 	}
 	for _, regionName := range regionNames {
@@ -130,7 +136,17 @@ func listRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 }
 
 func getRegion(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	name := d.EqualsQuals["name"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("name", name); err != nil {
+		return nil, err
+	}
+
 	var region Region
 	region.Name = name
 	return region, nil

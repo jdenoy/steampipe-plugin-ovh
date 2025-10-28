@@ -130,10 +130,16 @@ func listImage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var images []Image
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/image", projectId), &images)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_image.listImage", err)
+		plugin.Logger(ctx).Error("ovh_cloud_image.listImage", "error", err)
 		return nil, err
 	}
 	for _, image := range images {
@@ -150,10 +156,19 @@ func getImage(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var image Image
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/image/%s", projectId, id), &image)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_image.getImage", err)
+		plugin.Logger(ctx).Error("ovh_cloud_image.getImage", "error", err)
 		return nil, err
 	}
 	return image, nil

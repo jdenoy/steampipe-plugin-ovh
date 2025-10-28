@@ -31,11 +31,15 @@ func ConfigInstance() interface{} {
 	return &ovhConfig{}
 }
 
-// GetConfig :: retrieve and cast connection config from query data
+// GetConfig retrieves and casts the connection configuration from query data.
 func GetConfig(connection *plugin.Connection) ovhConfig {
 	if connection == nil || connection.Config == nil {
 		return ovhConfig{}
 	}
-	config, _ := connection.Config.(ovhConfig)
+	config, ok := connection.Config.(ovhConfig)
+	if !ok {
+		// If type assertion fails, return empty config which will trigger validation errors in connect()
+		return ovhConfig{}
+	}
 	return config
 }

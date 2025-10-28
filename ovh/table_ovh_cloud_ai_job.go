@@ -94,6 +94,15 @@ type AIJobStatus struct {
 func getAIJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	job := h.Item.(AIJob)
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
 
 	client, err := connect(ctx, d)
 	if err != nil {
@@ -103,7 +112,7 @@ func getAIJob(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/ai/job/%s", projectId, job.ID), &job)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_ai_job.getAIJob", err)
+		plugin.Logger(ctx).Error("ovh_cloud_ai_job.getAIJob", "error", err)
 		return nil, err
 	}
 	return job, nil
@@ -116,10 +125,16 @@ func listAIJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var jobs []AIJob
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/ai/job", projectId), &jobs)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_ai_job.listAIJob", err)
+		plugin.Logger(ctx).Error("ovh_cloud_ai_job.listAIJob", "error", err)
 		return nil, err
 	}
 	for _, job := range jobs {

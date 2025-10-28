@@ -97,7 +97,7 @@ func getGetRefundDetailInfo(ctx context.Context, d *plugin.QueryData, h *plugin.
 	err = client.Get(fmt.Sprintf("/me/refund/%s/details/%s", refundDetail.RefundID, refundDetail.ID), &refundDetail)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_refund_detail.getGetBillDetailInfo", err)
+		plugin.Logger(ctx).Error("ovh_refund_detail.getGetBillDetailInfo", "error", err)
 		return nil, err
 	}
 
@@ -113,12 +113,17 @@ func listRefundDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 
 	refundId := d.EqualsQuals["refund_id"].GetStringValue()
 
+	// Validate required qualifier
+	if err := ValidateQualValue("refund_id", refundId); err != nil {
+		return nil, err
+	}
+
 	// First, we get IDs of refund
 	var refundDetailsId []string
 	err = client.Get(fmt.Sprintf("/me/refund/%s/details", refundId), &refundDetailsId)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_refund_detail.listRefundDetails", err)
+		plugin.Logger(ctx).Error("ovh_refund_detail.listRefundDetails", "error", err)
 		return nil, err
 	}
 
@@ -135,6 +140,14 @@ func listRefundDetails(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 func getRefundDetail(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	refundId := d.EqualsQuals["refund_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("refund_id", refundId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
 
 	h.Item = RefundDetail{
 		ID:       id,

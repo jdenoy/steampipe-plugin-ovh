@@ -130,7 +130,7 @@ func getProjectInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s", project.ID), &project)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_project.getProjectInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_project.getProjectInfo", "error", err)
 		return nil, err
 	}
 	return project, nil
@@ -145,7 +145,7 @@ func listProject(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	var projects []string
 	err = client.Get("/cloud/project", &projects)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_project.listProject", err)
+		plugin.Logger(ctx).Error("ovh_cloud_project.listProject", "error", err)
 		return nil, err
 	}
 	for _, projectId := range projects {
@@ -159,6 +159,12 @@ func listProject(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 func getProject(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	quals := d.EqualsQuals
 	projectId := quals["id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("id", projectId); err != nil {
+		return nil, err
+	}
+
 	var project Project
 	project.ID = projectId
 	return project, nil

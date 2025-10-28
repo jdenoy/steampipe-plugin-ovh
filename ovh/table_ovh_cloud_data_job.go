@@ -130,7 +130,7 @@ func getDataJobInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateD
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/dataProcessing/jobs/%s", projectId, job.ID), &job)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_data_job.getDataJobInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_data_job.getDataJobInfo", "error", err)
 		return nil, err
 	}
 	return job, nil
@@ -143,10 +143,16 @@ func listDataJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var jobIds []string
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/dataProcessing/jobs", projectId), &jobIds)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_data_job.listDataJobInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_data_job.listDataJobInfo", "error", err)
 		return nil, err
 	}
 	for _, jobId := range jobIds {
@@ -158,7 +164,17 @@ func listDataJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 }
 
 func getDataJob(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var job Job
 	job.ID = id
 	return job, nil

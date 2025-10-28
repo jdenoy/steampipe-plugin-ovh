@@ -101,6 +101,15 @@ type AIAppStatus struct {
 func getAIApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	app := h.Item.(AIApp)
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
 
 	client, err := connect(ctx, d)
 	if err != nil {
@@ -110,7 +119,7 @@ func getAIApp(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/ai/app/%s", projectId, app.ID), &app)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_ai_app.getAIApp", err)
+		plugin.Logger(ctx).Error("ovh_cloud_ai_app.getAIApp", "error", err)
 		return nil, err
 	}
 	return app, nil
@@ -123,10 +132,16 @@ func listAIApp(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var apps []AIApp
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/ai/app", projectId), &apps)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_ai_app.listAIApp", err)
+		plugin.Logger(ctx).Error("ovh_cloud_ai_app.listAIApp", "error", err)
 		return nil, err
 	}
 	for _, app := range apps {

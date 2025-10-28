@@ -75,7 +75,7 @@ func listSwiftStorageContainer(ctx context.Context, d *plugin.QueryData, _ *plug
 	var containers []SwiftStorageContainer
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/storage", projectId), &containers)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_storage_swift.listSwiftStorageContainer", err)
+		plugin.Logger(ctx).Error("ovh_cloud_storage_swift.listSwiftStorageContainer", "error", err)
 		return nil, err
 	}
 	for _, container := range containers {
@@ -95,7 +95,7 @@ func getSwiftStorageContainer(ctx context.Context, d *plugin.QueryData, _ *plugi
 	var container SwiftStorageContainer
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/storage/%s", projectId, id), &container)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_storage_swift.getSwiftStorageContainer", err)
+		plugin.Logger(ctx).Error("ovh_cloud_storage_swift.getSwiftStorageContainer", "error", err)
 		return nil, err
 	}
 	container.ID = id

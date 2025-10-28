@@ -135,10 +135,16 @@ func listFlavor(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var flavors []Flavor
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/flavor", projectId), &flavors)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_flavor.listFlavor", err)
+		plugin.Logger(ctx).Error("ovh_cloud_flavor.listFlavor", "error", err)
 		return nil, err
 	}
 	for _, flavor := range flavors {
@@ -155,10 +161,19 @@ func getFlavor(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var flavor Flavor
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/flavor/%s", projectId, id), &flavor)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_flavor.getFlavor", err)
+		plugin.Logger(ctx).Error("ovh_cloud_flavor.getFlavor", "error", err)
 		return nil, err
 	}
 	return flavor, nil

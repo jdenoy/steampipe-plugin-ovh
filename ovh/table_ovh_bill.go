@@ -124,7 +124,7 @@ func getBillInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	err = client.Get(fmt.Sprintf("/me/bill/%s", bill.ID), &bill)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_bill.getBillInfo", err)
+		plugin.Logger(ctx).Error("ovh_bill.getBillInfo", "error", err)
 		return nil, err
 	}
 
@@ -142,7 +142,7 @@ func listBill(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 	err = client.Get("/me/bill", &billsId)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_bill.listBill", err)
+		plugin.Logger(ctx).Error("ovh_bill.listBill", "error", err)
 		return nil, err
 	}
 
@@ -157,6 +157,12 @@ func listBill(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 
 func getBill(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var bill Bill
 	bill.ID = id
 	return bill, nil

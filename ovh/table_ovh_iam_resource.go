@@ -25,7 +25,7 @@ func tableOvhIamResource() *plugin.Table {
 				Name:        "urn",
 				Type:        proto.ColumnType_STRING,
 				Description: "Unique resource name used in policies.",
-				Transform: transform.FromField("URN"),
+				Transform:   transform.FromField("URN"),
 			},
 			{
 				Name:        "name",
@@ -76,7 +76,7 @@ func listIamResource(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydrate
 	var resources []IamResource
 	err = client.Get("/v2/iam/resource", &resources)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_iam_resource.listIamResource", err)
+		plugin.Logger(ctx).Error("ovh_iam_resource.listIamResource", "error", err)
 		return nil, err
 	}
 

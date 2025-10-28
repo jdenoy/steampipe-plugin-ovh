@@ -92,7 +92,7 @@ func getLogInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData)
 	err = client.Get(fmt.Sprintf("/me/api/logs/self/%d", log.ID), &log)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_log_self.getLogInfo", err)
+		plugin.Logger(ctx).Error("ovh_log_self.getLogInfo", "error", err)
 		return nil, err
 	}
 
@@ -110,7 +110,7 @@ func listLog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (i
 	err = client.Get("/me/api/logs/self", &logsId)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_log_self.listLog", err)
+		plugin.Logger(ctx).Error("ovh_log_self.listLog", "error", err)
 		return nil, err
 	}
 
@@ -125,6 +125,12 @@ func listLog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (i
 
 func getLog(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	strId := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("id", strId); err != nil {
+		return nil, err
+	}
+
 	var log Log
 	intId, err := strconv.Atoi(strId)
 	if err != nil {

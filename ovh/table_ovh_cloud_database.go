@@ -132,7 +132,7 @@ func getDatabaseInfo(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/database/service/%s", projectId, database.ID), &database)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_database.getDatabaseInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_database.getDatabaseInfo", "error", err)
 		return nil, err
 	}
 	return database, nil
@@ -145,10 +145,16 @@ func listDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var databaseIds []string
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/database/service", projectId), &databaseIds)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_database.listDatabaseInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_database.listDatabaseInfo", "error", err)
 		return nil, err
 	}
 	for _, databaseId := range databaseIds {
@@ -160,7 +166,17 @@ func listDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 }
 
 func getDatabase(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var database Database
 	database.ID = id
 	return database, nil

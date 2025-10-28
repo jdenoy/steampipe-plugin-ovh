@@ -60,10 +60,16 @@ func listSshKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData)
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var sshKeys []SshKey
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/sshkey", projectId), &sshKeys)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_ssh_key.listSshKey", err)
+		plugin.Logger(ctx).Error("ovh_cloud_ssh_key.listSshKey", "error", err)
 		return nil, err
 	}
 	for _, sshKey := range sshKeys {
@@ -80,10 +86,19 @@ func getSshKey(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var sshKey SshKey
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/sshkey/%s", projectId, id), &sshKey)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_ssh_key.getSshKey", err)
+		plugin.Logger(ctx).Error("ovh_cloud_ssh_key.getSshKey", "error", err)
 		return nil, err
 	}
 	return sshKey, nil

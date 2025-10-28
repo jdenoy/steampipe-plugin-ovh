@@ -17,19 +17,19 @@ type Iam struct {
 }
 
 type Ceph struct {
-	ID             string   		 `json:"cephId"`
-	CephMons       []string          `json:"cephMons,omitempty"`
-	CephVersion    string            `json:"cephVersion"`
-	CreateDate     string            `json:"createDate"`
-	CrushTunables  string            `json:"crushTunables,omitempty"`
-	Iam            Iam               `json:"iam,omitempty"`
-	Label          string            `json:"label,omitempty"`
-	Region         string            `json:"region"`
-	ServiceName    string            `json:"serviceName"`
-	Size           int               `json:"size"`
-	State          string            `json:"state"`
-	Status         string            `json:"status"`
-	UpdateDate     string            `json:"updateDate"`
+	ID            string   `json:"cephId"`
+	CephMons      []string `json:"cephMons,omitempty"`
+	CephVersion   string   `json:"cephVersion"`
+	CreateDate    string   `json:"createDate"`
+	CrushTunables string   `json:"crushTunables,omitempty"`
+	Iam           Iam      `json:"iam,omitempty"`
+	Label         string   `json:"label,omitempty"`
+	Region        string   `json:"region"`
+	ServiceName   string   `json:"serviceName"`
+	Size          int      `json:"size"`
+	State         string   `json:"state"`
+	Status        string   `json:"status"`
+	UpdateDate    string   `json:"updateDate"`
 }
 
 func tableOvhCeph() *plugin.Table {
@@ -111,7 +111,6 @@ func tableOvhCeph() *plugin.Table {
 				Description: "Status of the Ceph cluster.",
 				Transform:   transform.FromField("Status"),
 			},
-
 		},
 	}
 }
@@ -128,7 +127,7 @@ func getCephInfo(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData
 	err = client.Get(fmt.Sprintf("/dedicated/ceph/%s", ceph.ID), &ceph)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_ceph.getCephInfo", err)
+		plugin.Logger(ctx).Error("ovh_ceph.getCephInfo", "error", err)
 		return nil, err
 	}
 
@@ -146,7 +145,7 @@ func listCeph(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 	err = client.Get("/dedicated/ceph", &cephsId)
 
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_ceph.listCeph", err)
+		plugin.Logger(ctx).Error("ovh_ceph.listCeph", "error", err)
 		return nil, err
 	}
 
@@ -161,6 +160,12 @@ func listCeph(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (
 
 func getCeph(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var ceph Ceph
 	ceph.ID = id
 	return ceph, nil

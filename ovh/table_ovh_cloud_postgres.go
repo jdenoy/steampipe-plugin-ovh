@@ -103,7 +103,7 @@ func getPostgresInfo(ctx context.Context, d *plugin.QueryData, h *plugin.Hydrate
 
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/database/postgresql/%s", projectId, postgres.ID), &postgres)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_postgres.getPostgresInfo", err)
+		plugin.Logger(ctx).Error("ovh_cloud_postgres.getPostgresInfo", "error", err)
 		return nil, err
 	}
 	return postgres, nil
@@ -116,10 +116,16 @@ func listPostgres(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+
 	var postgresIds []string
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/database/postgresql", projectId), &postgresIds)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_postgres.listPostgres", err)
+		plugin.Logger(ctx).Error("ovh_cloud_postgres.listPostgres", "error", err)
 		return nil, err
 	}
 	for _, postgresId := range postgresIds {
@@ -131,7 +137,17 @@ func listPostgres(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateDat
 }
 
 func getPostgres(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
+	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
+
 	var postgres Database
 	postgres.ID = id
 	return postgres, nil

@@ -99,10 +99,15 @@ func listVolumeSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydr
 		return nil, err
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
+
+	// Validate required qualifier
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
 	var volumes []VolumeSnapShot
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/volume/snapshot", projectId), &volumes)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_volume.listVolumeSnapshot", err)
+		plugin.Logger(ctx).Error("ovh_cloud_volume.listVolumeSnapshot", "error", err)
 		return nil, err
 	}
 	for _, volume := range volumes {
@@ -119,10 +124,18 @@ func getVolumeSnapshot(ctx context.Context, d *plugin.QueryData, _ *plugin.Hydra
 	}
 	projectId := d.EqualsQuals["project_id"].GetStringValue()
 	id := d.EqualsQuals["id"].GetStringValue()
+
+	// Validate required qualifiers
+	if err := ValidateQualValue("project_id", projectId); err != nil {
+		return nil, err
+	}
+	if err := ValidateQualValue("id", id); err != nil {
+		return nil, err
+	}
 	var volume VolumeSnapShot
 	err = client.Get(fmt.Sprintf("/cloud/project/%s/volume/snapshot/%s", projectId, id), &volume)
 	if err != nil {
-		plugin.Logger(ctx).Error("ovh_cloud_volume.getVolumeSnapshot", err)
+		plugin.Logger(ctx).Error("ovh_cloud_volume.getVolumeSnapshot", "error", err)
 		return nil, err
 	}
 	return volume, nil
